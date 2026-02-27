@@ -20,7 +20,7 @@ const brownSugar = localFont({
 type Registration = {
   id: string;
   created_at: string;
-  fullName: string;
+  full_name: string;
   email: string;
   phone: string;
   company: string;
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
                       <td className="px-6 py-4 text-stone-500">
                         {new Date(reg.created_at).toLocaleDateString('en-GB')}
                       </td>
-                      <td className="px-6 py-4 font-medium text-stone-900">{reg.fullName}</td>
+                      <td className="px-6 py-4 font-medium text-stone-900">{reg.full_name}</td>
                       <td className="px-6 py-4 text-stone-600">{reg.email}</td>
                       <td className="px-6 py-4 text-stone-600">{reg.phone}</td>
                       <td className="px-6 py-4 text-stone-600">{reg.company || '-'}</td>
