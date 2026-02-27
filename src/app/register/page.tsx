@@ -1,9 +1,10 @@
 // src/app/register/page.tsx
 'use client';
-import { supabase } from '@/lib/supabase/client';
+
 import { useState } from 'react';
 import { Kantumruy_Pro } from 'next/font/google';
 import localFont from 'next/font/local';
+import { supabase } from '@/lib/supabase/client';
 
 const kantumruyPro = Kantumruy_Pro({
   weight: ['300', '400', '500'],
@@ -25,30 +26,62 @@ export default function EventRegistrationPage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage(''); // Clear previous errors
+
+    // 1. Validate Phone (strips spaces/dashes, checks for 9-10 digits)
+    const cleanPhone = formData.phone.replace(/[\s-]/g, '');
+    if (!/^\d{9,10}$/.test(cleanPhone)) {
+      setErrorMessage('Phone number must be exactly 9 or 10 digits.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // 2. Validate Email Format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setErrorMessage('Please enter a valid email address.');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      const { error } = await supabase
+      // 3. Check for Existing Registration
+      const { data: existingUser, error: searchError } = await supabase
+        .from('registrations')
+        .select('id')
+        .or(`email.eq.${formData.email},phone.eq.${cleanPhone}`)
+        .maybeSingle();
+
+      if (searchError) throw searchError;
+
+      if (existingUser) {
+        setErrorMessage('This email or phone number is already registered.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 4. Save Registration
+      const { error: insertError } = await supabase
         .from('registrations')
         .insert([
           {
             full_name: formData.fullName,
             email: formData.email,
-            phone: formData.phone,
+            phone: cleanPhone,
             company: formData.company
-            // Removed the notes line completely
           }
         ]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
       
       setSubmitSuccess(true);
     } catch (error) {
-      console.error('Error saving registration:', error);
-      alert('Something went wrong. Please try again.');
+      console.error('Registration Error:', error);
+      setErrorMessage('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -58,13 +91,20 @@ export default function EventRegistrationPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // SUCCESS SCREEN
   if (submitSuccess) {
     return (
       <div className={`min-h-screen flex items-center justify-center px-6 bg-[#FAF9F6] text-stone-900 ${fontClass}`}>
         <div className="max-w-xl w-full text-center animate-in fade-in duration-700">
           <h1 className="text-4xl font-normal mb-6 tracking-tight">Reservation Confirmed</h1>
           <p className="text-lg text-stone-500 mb-12 font-light">Thank you. Your place at the event has been secured.</p>
-          <button onClick={() => setSubmitSuccess(false)} className="px-10 py-4 border border-stone-300 text-stone-600 hover:border-stone-900 transition-all text-xs uppercase tracking-[0.2em]">
+          <button 
+            onClick={() => {
+              setSubmitSuccess(false);
+              setFormData({ fullName: '', phone: '', email: '', company: '' }); // Reset form
+            }} 
+            className="px-10 py-4 border border-stone-300 text-stone-600 hover:border-stone-900 transition-all text-xs uppercase tracking-[0.2em]"
+          >
             Return Home
           </button>
         </div>
@@ -82,9 +122,8 @@ export default function EventRegistrationPage() {
         <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#FAF9F6] to-transparent z-10" aria-hidden="true" />
         
         <div className="relative z-20 px-6 md:px-16 lg:px-24 w-full max-w-7xl mx-auto flex flex-col items-center text-center md:items-start md:text-left pt-20 pb-32">
-          
           <p className="text-white text-1xl font-normal mb-4 tracking-tight text-stone-900">
-            BARE EXCLUSIVE EVENT
+            BARE Exclusive Event
           </p>
 
           <div className="min-h-[140px] sm:min-h-[180px] md:min-h-[220px] flex items-center justify-center md:justify-start w-full max-w-[340px] md:max-w-[700px] mb-6">
@@ -137,6 +176,13 @@ export default function EventRegistrationPage() {
               </div>
             </div>
 
+            {/* Error Message Display */}
+            {errorMessage && (
+              <div className="text-red-500 text-[10px] uppercase font-medium tracking-[0.2em] text-center pt-4">
+                {errorMessage}
+              </div>
+            )}
+
             <div className="pt-8">
               <button type="submit" disabled={isSubmitting} className="w-full py-5 bg-stone-900 text-white hover:bg-stone-800 transition-colors text-xs uppercase disabled:opacity-50 font-medium tracking-[0.2em]">
                 {isSubmitting ? 'Confirming...' : 'Submit Registration'}
@@ -177,30 +223,44 @@ export default function EventRegistrationPage() {
         </div>
       </section>
 
-      {/* SECTION 4 — MAP */}
-      <section className="py-32 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-16 items-center">
-          <div className="w-full md:w-1/3 space-y-8 text-center md:text-left">
+      {/* SECTION 4 — MAP (Dark Mode & Grayscale Interactive) */}
+      <section className="py-32 px-6 bg-black text-white border-t border-stone-800">
+        <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
+          
+          <div className="space-y-8 mb-16">
+            <h2 className="text-[11px] uppercase text-stone-400 font-medium tracking-[0.3em]">
+              Location
+            </h2>
+            
             <div>
-              <h2 className="text-[11px] uppercase text-stone-500 mb-6 font-medium tracking-[0.3em]">Location</h2>
-              <h3 className="text-2xl text-stone-900 mb-2">Vattanac Tower</h3>
-              <p className="text-stone-600 font-light">Phnom Penh, Cambodia</p>
+              <h3 className="text-3xl text-white mb-3">Vattanac Tower</h3>
+              <p className="text-stone-400 font-light text-lg">Phnom Penh, Cambodia</p>
             </div>
             
-            <a href="https://maps.app.goo.gl/c5ZavQynspPoaeXp7" target="_blank" rel="noopener noreferrer" className="inline-block px-10 py-4 border border-stone-300 text-stone-600 hover:border-stone-900 transition-all text-xs uppercase font-medium tracking-[0.2em]">
-              Get Direction
-            </a>
+            <div className="pt-4">
+              <a 
+                href="https://goo.gl/maps/placeholder-link-replace-with-real" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-block px-10 py-4 border border-white text-white hover:bg-white hover:text-black transition-all duration-300 text-xs uppercase font-medium tracking-[0.2em]"
+              >
+                Get Direction
+              </a>
+            </div>
           </div>
-          <div className="w-full md:w-2/3 aspect-[16/9] md:aspect-[21/9] bg-stone-200 relative overflow-hidden">
+
+          {/* Grayscale Map Container */}
+          <div className="w-full aspect-video md:aspect-[21/9] bg-stone-900 relative overflow-hidden border border-stone-800">
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3908.6974837582384!2d104.9159958758522!3d11.573530943983892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31095143a986fc07%3A0xc4976c41ebdc86bf!2sVattanac%20Capital!5e0!3m2!1sen!2skh!4v1772191832203!5m2!1sen!2skh" 
-              className="absolute inset-0 w-full h-full" 
+              src="https://maps.app.goo.gl/uX8NCm1ffiR649v5A" 
+              className="absolute inset-0 w-full h-full grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-700" 
               style={{ border: 0 }} 
               allowFullScreen 
               loading="lazy" 
               referrerPolicy="no-referrer-when-downgrade" 
             />
           </div>
+          
         </div>
       </section>
     </div>

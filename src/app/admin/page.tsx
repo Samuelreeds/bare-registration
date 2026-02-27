@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Kantumruy_Pro } from 'next/font/google';
 import localFont from 'next/font/local';
-import { supabase } from '@/lib/supabase/client'; // Adjust path if your client is elsewhere
+import { supabase } from '@/lib/supabase/client';
 
 const kantumruyPro = Kantumruy_Pro({
   weight: ['300', '400', '500'],
@@ -24,9 +24,7 @@ type Registration = {
   email: string;
   phone: string;
   company: string;
-  notes: string;
-  // If you save guests as a JSON object/array in Supabase, you can type it here
-  guests?: any[]; 
+  notes?: string;
 };
 
 export default function AdminDashboard() {
@@ -39,8 +37,8 @@ export default function AdminDashboard() {
   }, []);
 
   const fetchRegistrations = async () => {
+    setLoading(true);
     try {
-      // Change 'registrations' to whatever your actual Supabase table is named!
       const { data, error } = await supabase
         .from('registrations')
         .select('*')
@@ -53,6 +51,40 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const exportToCSV = () => {
+    if (registrations.length === 0) return alert('No data to export');
+
+    // Create CSV headers
+    const headers = ['Date', 'Full Name', 'Email', 'Phone', 'Company', 'Notes'];
+    
+    // Map data to CSV rows, wrapping fields in quotes to handle commas safely
+    const csvRows = registrations.map(reg => {
+      const date = new Date(reg.created_at).toLocaleDateString('en-GB');
+      const name = reg.full_name || '';
+      const email = reg.email || '';
+      const phone = reg.phone || '';
+      const company = reg.company || '';
+      const notes = reg.notes || '';
+      
+      return `"${date}","${name}","${email}","${phone}","${company}","${notes}"`;
+    });
+
+    // Combine headers and rows
+    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    
+    // Create a downloadable Blob
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    // Create a temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `BARE_Registrations_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -73,17 +105,25 @@ export default function AdminDashboard() {
 
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto p-8">
-        <div className="mb-8 flex justify-between items-end">
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
             <h2 className="text-2xl font-normal tracking-tight mb-2">Registration List</h2>
             <p className="text-stone-500 text-sm">Review and manage your event attendees.</p>
           </div>
-          <button 
-            onClick={fetchRegistrations}
-            className="text-[10px] uppercase tracking-[0.2em] border border-stone-300 px-4 py-2 hover:border-stone-900 hover:bg-stone-900 hover:text-white transition-all"
-          >
-            Refresh Data
-          </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={exportToCSV}
+              className="text-[10px] uppercase tracking-[0.2em] border border-stone-300 bg-white px-4 py-2 hover:border-stone-900 hover:bg-stone-100 transition-all text-stone-700 font-medium"
+            >
+              Export Excel / CSV
+            </button>
+            <button 
+              onClick={fetchRegistrations}
+              className="text-[10px] uppercase tracking-[0.2em] border border-stone-900 px-4 py-2 bg-stone-900 text-white hover:bg-stone-800 transition-all font-medium"
+            >
+              Refresh Data
+            </button>
+          </div>
         </div>
 
         {/* DATA TABLE */}
