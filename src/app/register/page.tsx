@@ -223,44 +223,30 @@ export default function EventRegistrationPage() {
         </div>
       </section>
 
-      {/* SECTION 4 — MAP (Dark Mode & Grayscale Interactive) */}
-      <section className="py-32 px-6 bg-black text-white border-t border-stone-800">
-        <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-          
-          <div className="space-y-8 mb-16">
-            <h2 className="text-[11px] uppercase text-stone-400 font-medium tracking-[0.3em]">
-              Location
-            </h2>
-            
+      {/* SECTION 4 — MAP */}
+      <section className="py-32 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-16 items-center">
+          <div className="w-full md:w-1/3 space-y-8 text-center md:text-left">
             <div>
-              <h3 className="text-3xl text-white mb-3">Vattanac Tower</h3>
-              <p className="text-stone-400 font-light text-lg">Phnom Penh, Cambodia</p>
+              <h2 className="text-[11px] uppercase text-stone-500 mb-6 font-medium tracking-[0.3em]">Location</h2>
+              <h3 className="text-2xl text-stone-900 mb-2">Vattanac Tower</h3>
+              <p className="text-stone-600 font-light">Phnom Penh, Cambodia</p>
             </div>
             
-            <div className="pt-4">
-              <a 
-                href="https://goo.gl/maps/placeholder-link-replace-with-real" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="inline-block px-10 py-4 border border-white text-white hover:bg-white hover:text-black transition-all duration-300 text-xs uppercase font-medium tracking-[0.2em]"
-              >
-                Get Direction
-              </a>
-            </div>
+            <a href="https://maps.app.goo.gl/uX8NCm1ffiR649v5A" target="_blank" rel="noopener noreferrer" className="inline-block px-10 py-4 border border-stone-300 text-stone-600 hover:border-stone-900 transition-all text-xs uppercase font-medium tracking-[0.2em]">
+              Get Direction
+            </a>
           </div>
-
-          {/* Grayscale Map Container */}
-          <div className="w-full aspect-video md:aspect-[21/9] bg-stone-900 relative overflow-hidden border border-stone-800">
+          <div className="w-full md:w-2/3 aspect-[16/9] md:aspect-[21/9] bg-stone-200 relative overflow-hidden">
             <iframe 
-              src="https://maps.app.goo.gl/uX8NCm1ffiR649v5A" 
-              className="absolute inset-0 w-full h-full grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-700" 
+              src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15634.790211315385!2d104.918571!3d11.573526!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31095143a986fc07%3A0xc4976c41ebdc86bf!2sVattanac%20Capital!5e0!3m2!1sen!2skh!4v1772211077965!5m2!1sen!2skh" 
+              className="absolute inset-0 w-full h-full" 
               style={{ border: 0 }} 
               allowFullScreen 
               loading="lazy" 
               referrerPolicy="no-referrer-when-downgrade" 
             />
           </div>
-          
         </div>
       </section>
     </div>
