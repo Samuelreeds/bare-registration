@@ -1,6 +1,6 @@
 // src/app/register/page.tsx
 'use client';
-
+import { supabase } from '@/lib/supabase/client';
 import { useState } from 'react';
 import { Kantumruy_Pro } from 'next/font/google';
 import localFont from 'next/font/local';
@@ -29,9 +29,29 @@ export default function EventRegistrationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setSubmitSuccess(true);
-    setIsSubmitting(false);
+
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .insert([
+          {
+            full_name: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            company: formData.company
+            // Removed the notes line completely
+          }
+        ]);
+
+      if (error) throw error;
+      
+      setSubmitSuccess(true);
+    } catch (error) {
+      console.error('Error saving registration:', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +187,7 @@ export default function EventRegistrationPage() {
               <p className="text-stone-600 font-light">Phnom Penh, Cambodia</p>
             </div>
             
-            <a href="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3908.6974837582384!2d104.9159958758522!3d11.573530943983892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31095143a986fc07%3A0xc4976c41ebdc86bf!2sVattanac%20Capital!5e0!3m2!1sen!2skh!4v1772191832203!5m2!1sen!2skh" target="_blank" rel="noopener noreferrer" className="inline-block px-10 py-4 border border-stone-300 text-stone-600 hover:border-stone-900 transition-all text-xs uppercase font-medium tracking-[0.2em]">
+            <a href="https://maps.app.goo.gl/c5ZavQynspPoaeXp7" target="_blank" rel="noopener noreferrer" className="inline-block px-10 py-4 border border-stone-300 text-stone-600 hover:border-stone-900 transition-all text-xs uppercase font-medium tracking-[0.2em]">
               Get Direction
             </a>
           </div>
